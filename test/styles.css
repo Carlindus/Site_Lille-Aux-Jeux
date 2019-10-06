@@ -1,0 +1,232 @@
+body{
+	margin: 0;
+	padding: 0;
+
+	--redBlack: rgb(40, 20, 25);
+	--redDark: rgb(85, 35, 50);
+	--redMedium: rgb(125, 55, 75);
+	--redLight: rgb(145, 60, 85);
+	--greyBlack: rgb(75, 75, 75);
+	--greyDark: rgb(155, 155, 155);
+	--greyMedium: rgb(205, 205, 205);
+	--greyLight: rgb(245, 245, 245);
+
+	font-family: 'Montserrat', 'Helvetica', sans-serif;
+	font-size: 16px;
+	color: var(--redBlack);
+}
+
+button:focus{
+	outline: none;
+}
+
+.content{
+	text-align: center;
+	padding-top: 2em;
+}
+
+.content .fas{
+	color : var(--redMedium);
+}
+
+.content a{
+	display: inline-block;
+	margin-top: 1em;
+	text-decoration: none;
+	color : inherit;
+	background: linear-gradient(var(--redMedium), var(--redMedium)) bottom no-repeat;
+	background-size: 100% 7%;
+	transition: all .3s;
+}
+
+.content a:hover{
+    color: var(--greyLight);
+    background-size: 100% 100%;
+    border-radius: 5px;
+    padding: 0 5px;
+	}
+
+.button-skills-quizz{
+	background-color: var(--redMedium);
+	color: #fff;
+	text-align: center;
+	display: block;
+	border: none;
+	padding: 1.5em 2em;
+	border-radius: 15px;
+	font-size: 18px;
+	width: 100%;
+	max-width: 350px;
+	margin: 0 auto;
+	cursor: pointer;
+}
+
+.skills-forms{
+	max-width: 60%;
+	margin: 0 auto;
+}
+
+.skills-forms-error{
+	background-color: #e53935;
+	text-align: center;
+	color: #fff;
+	font-weight: 600;
+	padding: 1em;
+	border-radius: 15px;
+	margin: 2em;
+
+	display: none;
+}
+
+.skills-forms form{
+	margin: 2em;
+	padding: 2em;
+	padding-bottom: 100px;
+	border: 2px solid var(--redMedium);
+	border-radius: 15px;
+	position: relative;
+	overflow: hidden;
+
+	display: none;
+}
+
+.skills-forms .question-input{
+	padding: 0.8em;
+}
+
+.skills-forms form .question-title{
+	color: var(--redMedium);
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.skills-forms button[type=submit]{
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	width: 100%;
+	height: 60px;
+	line-height: 60px;
+	padding-right: 1em;
+	background-color: var(--redMedium);
+	color: #fff;
+	text-align: right;
+	display: block;
+	border: none;
+	text-transform: uppercase;
+	font-size: 22px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.results{
+	display: none;
+	text-align: center;
+}
+
+.results .result{
+	background-color: var(--redMedium);
+	color: #fff;
+	text-align: center;
+	padding: 1.5em 2em;
+	border-radius: 15px;
+	font-size: 18px;
+	max-width: 60%;
+	margin: 0 auto;
+	display: none;
+}
+.results a{
+	color: #fff;
+	padding-bottom: 10px;
+	text-decoration: none;
+  background: linear-gradient(#fff,#fff) bottom no-repeat;
+  background-size: 100% 7%;
+  transition: all .2s;
+	padding: 0;
+}
+.results a:hover{
+	color: var(--redMedium);
+	background-size: 100% 100%;
+	border-radius: 5px;
+	padding: 0 5px;
+}
+.total-points{
+	font-weight: 600;
+	color: var(--redMedium);
+}
+
+
+.skills-forms input[type=radio],
+.skills-forms input[type=checkbox]{
+	display: none;
+}
+
+.skills-forms input[type=radio] + label,
+.skills-forms input[type=checkbox] + label{
+	background-color: var(--greyLight);
+	padding: 1.5em 2em;
+	padding-left: 3.5em;
+	margin-bottom: 1em;
+	border-radius: 15px;
+	display: block;
+	cursor: pointer;
+	position: relative;
+}
+
+.skills-forms input[type=radio] + label:hover,
+.skills-forms input[type=checkbox] + label:hover{
+	background-color: var(--greyMedium);
+}
+
+.skills-forms input[type=radio]:checked + label,
+.skills-forms input[type=checkbox]:checked + label{
+	background-color: var(--redMedium);
+	color: #fff;
+}
+
+.skills-forms input[type=radio] + label:before,
+.skills-forms input[type=checkbox] + label:before{
+	font-family: "Font Awesome 5 Free";
+	font-weight: 400;
+	display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    position: absolute;
+    left: 1.5em;
+    font-size: 18px;
+}
+
+.skills-forms input[type=radio] + label:before{
+	content: "\f111";
+}
+
+.skills-forms input[type=checkbox] + label:before{
+	content: "\f0c8";
+}
+
+.skills-forms input[type=radio]:checked + label:before{
+	content: "\f058";
+}
+
+.skills-forms input[type=checkbox]:checked + label:before{
+	content: "\f14a";
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+	.skills-forms{
+		max-width: 80%;
+		margin: 0 auto;
+	}
+}
+
+@media (max-width: 576px) {
+	.skills-forms{
+		max-width: 100%;
+		margin: 0 auto;
+	}
+}

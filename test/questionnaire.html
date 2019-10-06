@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="initial-scale=1, maximum-scale=1">
+	<title>Avez-vous l’étoffe d’un croupier?</title>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+	<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+	<div class="content">
+		<p>Êtes-vous fait pour un métier atypique? <br/> Vous souhaitez suivre une formation pour devenir croupier?</p>
+		<button class="button-skills-quizz">Faites le test</button>
+		<i class="fas fa-arrow-alt-circle-left"></i>
+		<a href="https://carlindusdesign.fr/LAJ/le-metier-de-croupier/" title="Revenir à Lille Aux Jeux">Retour au site</a>
+	</div>
+	<div class="skills-forms">
+		<div class="skills-forms-error">
+			<i class="fas fa-exclamation-circle"></i> Tous les champs * sont obligatoires
+		</div>
+		<form action="#" data-skillForm="0" data-validForm="true">
+			<div class="question-input" data-check-group="true">
+				<p class="question-title">Dans quelle tranche d'âge vous situez vous&nbsp;?*</p>
+				<input type="radio" name="age" id="age_18-24" value="age_18-24" data-points="5" data-required="true">
+				<label for="age_18-24">18-24 ans</label>
+
+				<input type="radio" name="age" id="age_25-30" value="age_25-30" data-points="3">
+				<label for="age_25-30">25-30 ans</label>
+
+				<input type="radio" name="age" id="age_30" value="age_30" data-points="1">
+				<label for="age_30">plus de 30 ans</label>
+			</div>
+
+			<div class="question-input" data-check-group="true">
+				<p class="question-title">Quel est votre niveau d'études&nbsp;?*</p>
+				<input type="radio" name="study" id="study_high" value="study_high" data-points="5">
+				<label for="study_high">études supérieures</label>
+
+				<input type="radio" name="study" id="study_standard" value="study_standard" data-points="8">
+				<label for="study_standard">niveau bac</label>
+
+				<input type="radio" name="study" id="study_low" value="study_low" data-points="10">
+				<label for="study_low">pas d'études</label>
+			</div>
+
+			<div class="question-input" data-check-group="true">
+				<p class="question-title">Avez vous déjà été salarié&nbsp;?*</p>
+				<input type="radio" name="employed" id="employed_true" value="employed_true" data-points="5">
+				<label for="employed_true">oui</label>
+
+				<input type="radio" name="employed" id="employed_false" value="employed_false" data-points="8">
+				<label for="employed_false">non</label>
+			</div>
+
+			<div class="question-input" data-check-group="true">
+				<p class="question-title">Actuellement, quelle est votre situation professionnelle&nbsp;?*</p>
+				<input type="radio" name="employment-status" id="employment-status_employed" value="employment-status_employed" data-points="5">
+				<label for="employment-status_employed">salarié (CDD, CDI...)</label>
+
+				<input type="radio" name="employment-status" id="employment-status_formation" value="employment-status_formation" data-points="5">
+				<label for="employment-status_formation">en formation</label>
+
+				<input type="radio" name="employment-status" id="employment-status_student" value="employment-status_student" data-points="10">
+				<label for="employment-status_student">étudiant</label>
+
+				<input type="radio" name="employment-status" id="employment-status_unemployed" value="employment-status_unemployed" data-points="8">
+				<label for="employment-status_unemployed">demandeur d'emploi inscrit au Pôle Emploi</label>
+
+				<input type="radio" name="employment-status" id="employment-status_other" value="employment-status_other" data-points="8">
+				<label for="employment-status_other">autre</label>
+			</div>
+
+			<button type="submit">Suivant <i class="fas fa-arrow-alt-circle-right"></i></button>
+		</form>
+
+		<form action="#" data-skillForm="1">
+			<div class="question-input" data-check-group="true" data-check-maxResponse="2">
+				<p class="question-title">Lors de vos dernières expériences professionnelles, quelles aptitudes avez vous le plus développées&nbsp;?* <br>(2 réponses au choix)</p>
+				<input type="checkbox" name="professional-skills" id="professional-skills_autonomy" value="professional-skills_autonomy" data-points="5">
+				<label for="professional-skills_autonomy">autonomie</label>
+
+				<input type="checkbox" name="professional-skills" id="professional-skills_confidence" value="professional-skills_confidence" data-points="8">
+				<label for="professional-skills_confidence">confiance en soi</label>
+
+				<input type="checkbox" name="professional-skills" id="professional-skills_team" value="professional-skills_team" data-points="8">
+				<label for="professional-skills_team">esprit d'équipe</label>
+
+				<input type="checkbox" name="professional-skills" id="professional-skills_other" value="professional-skills_other" data-points="5">
+				<label for="professional-skills_other">esprit d'initiative</label>
+
+				<input type="checkbox" name="professional-skills" id="professional-skills_client" value="professional-skills_client" data-points="10">
+				<label for="professional-skills_client">relation client</label>
+
+				<input type="checkbox" name="professional-skills" id="professional-skills_stress" value="professional-skills_stress" data-points="10">
+				<label for="professional-skills_stress">gestion du stress</label>
+			</div>
+
+			<div class="question-input" data-check-group="true">
+				<p class="question-title">Quel est selon vous votre trait de caractère principal&nbsp;?*</p>
+				<input type="radio" name="nature" id="nature_appealing" value="nature_appealing" data-points="10">
+				<label for="nature_appealing">avenant</label>
+
+				<input type="radio" name="nature" id="nature_dynamic" value="nature_dynamic" data-points="8">
+				<label for="nature_dynamic">énergique</label>
+
+				<input type="radio" name="nature" id="nature_discret" value="nature_discret" data-points="5">
+				<label for="nature_discret">réservé</label>
+
+				<input type="radio" name="nature" id="nature_impulsive" value="nature_impulsive" data-points="5">
+				<label for="nature_impulsive">impulsif</label>
+
+				<input type="radio" name="nature" id="nature_diplomat" value="nature_diplomat" data-points="8">
+				<label for="nature_diplomat">diplomate</label>
+
+				<input type="radio" name="nature" id="nature_observer" value="nature_observer" data-points="10">
+				<label for="nature_observer">observateur</label>
+			</div>
+
+			<div class="question-input" data-check-group="true">
+				<p class="question-title">Comment considérez vous votre niveau en calcul mental&nbsp;?*</p>
+				<input type="radio" name="arithmetic" id="arithmetic_excellent" value="arithmetic_excellent" data-points="10">
+				<label for="arithmetic_excellent">excellent</label>
+
+				<input type="radio" name="arithmetic" id="arithmetic_very-good" value="arithmetic_very-good" data-points="10">
+				<label for="arithmetic_very-good">très bon</label>
+
+				<input type="radio" name="arithmetic" id="arithmetic_good" value="arithmetic_good" data-points="8">
+				<label for="arithmetic_good">bon</label>
+
+				<input type="radio" name="arithmetic" id="arithmetic_medium" value="arithmetic_medium" data-points="8">
+				<label for="arithmetic_medium">moyen</label>
+
+				<input type="radio" name="arithmetic" id="arithmetic_bad" value="arithmetic_bad" data-points="5">
+				<label for="arithmetic_bad">mauvais</label>
+			</div>
+
+			<div class="question-input" data-check-group="true">
+				<p class="question-title">Avez vous une bonne mémoire&nbsp;?*</p>
+				<input type="radio" name="good-memory" id="good-memory_true" value="good-memory_true" data-points="10"><label for="good-memory_true">oui</label>
+
+				<input type="radio" name="good-memory" id="good-memory_false" value="good-memory_false" data-points="5">
+				<label for="good-memory_false">non</label>
+			</div>
+
+			<div class="question-input" data-check-group="true" data-check-maxResponse="2">
+				<p class="question-title">Cochez les phrases qui semblent vous définir le&nbsp;mieux:* <br>(2 réponses au choix) </p>
+				<input type="checkbox" name="define-yourself" id="define-yourself_01" value="define-yourself_01" data-points="8">
+				<label for="define-yourself_01">je suis vif, réactif avec de bons réflexes.</label>
+
+				<input type="checkbox" name="define-yourself" id="define-yourself_02" value="define-yourself_02" data-points="8">
+				<label for="define-yourself_02">je suis soigné, courtois avec une bonne éloquence.</label>
+
+				<input type="checkbox" name="define-yourself" id="define-yourself_03" value="define-yourself_03" data-points="10">
+				<label for="define-yourself_03">je suis rigoureux, précis et concentré.</label>
+
+				<input type="checkbox" name="define-yourself" id="define-yourself_04" value="define-yourself_04" data-points="8">
+				<label for="define-yourself_04">je peux supporter un travail intense sous pression.</label>
+
+				<input type="checkbox" name="define-yourself" id="define-yourself_05" value="define-yourself_05" data-points="5">
+				<label for="define-yourself_05">je suis astucieux, autonome et audacieux.</label>
+
+				<input type="checkbox" name="define-yourself" id="define-yourself_06" value="define-yourself_06" data-points="10">
+				<label for="define-yourself_06">je suis à l'aise avec les gens et anime facilement.</label>
+
+				<input type="checkbox" name="define-yourself" id="define-yourself_07" value="define-yourself_07" data-points="5">
+				<label for="define-yourself_07">je suis discret, avenant et bienveillant.</label>
+			</div>
+
+			<button type="submit">Suivant <i class="fas fa-arrow-alt-circle-right"></i></button>
+		</form>
+
+		<form action="#" data-skillForm="2">
+			<div class="question-input" data-check-group="true">
+				<p class="question-title">Etes vous prêt à travailler uniquement de nuit&nbsp;?*</p>
+				<input type="radio" name="night-work" id="night-work_true" value="night-work_true" data-multiple="1">
+				<label for="night-work_true">oui</label>
+
+				<input type="radio" name="night-work" id="night-work_false" value="night-work_false" data-multiple="0.9">
+				<label for="night-work_false">non</label>
+			</div>
+
+			<div class="question-input" data-check-group="true">
+				<p class="question-title">Les week-ends&nbsp;?*</p>
+				<input type="radio" name="week-end-work" id="week-end-work_true" value="week-end-work_true" data-multiple="1">
+				<label for="week-end-work_true">oui</label>
+
+				<input type="radio" name="week-end-work" id="week-end-work_false" value="week-end-work_false" data-multiple="0.9">
+				<label for="week-end-work_false">non</label>
+			</div>
+
+			<div class="question-input" data-check-group="true">
+				<p class="question-title">Les jours fériés&nbsp;?*</p>
+				<input type="radio" name="holiday-work" id="holiday-work_true" value="holiday-work_true" data-multiple="1">
+				<label for="holiday-work_true">oui</label>
+
+				<input type="radio" name="holiday-work" id="holiday-work_false" value="holiday-work_false">
+				<label for="holiday-work_false" data-multiple="0.9">non</label>
+			</div>
+
+			<div class="question-input" data-check-group="true">
+				<p class="question-title">Etes vous prêt à changer de région pour une opportunité professionnelle&nbsp;?*</p>
+				<input type="radio" name="mobility" id="mobility_true" value="mobility_true">
+				<label for="mobility_true" data-points="5">oui</label>
+
+				<input type="radio" name="mobility" id="mobility_false" value="mobility_false">
+				<label for="mobility_false" data-points="3">non</label>
+			</div>
+			<button type="submit">Voir résultats <i class="fas fa-arrow-alt-circle-right"></i></button>
+		</form>
+	</div>
+
+	<div class="results">
+		<h2>Vous avez terminé le test.</h2>
+		<p>Voici vos résultats : <span class="total-points"></span></p>
+		<div class="result" data-success="false">
+			<h3>Vous n'avez peut-être pas toutes les dispositions pour faire ce métier.</h3>
+			<p>Vous pouvez me contacter pour comprendre quels critères ne semblent pas être adaptés.</p>
+			<p><a href="https://carlindusdesign.fr/LAJ/a-propos-de-nous/#formContact">Me contacter</a></p>
+			<p><a href="https://carlindusdesign.fr/LAJ/#home">Retourner à l'accueil</a></p>
+		</div>
+		<div class="result" data-success="true">
+			<h3>Félicitations, il semblerait que vous soyez fait(e) pour ce métier</h3>
+			<p>N'hésitez pas à remplir le formulaire de demande de formation.</p>
+			<p><a href="https://carlindusdesign.fr/LAJ/modalites-dinscription/">Formulaire d'inscription</a></p>
+			<p><a href="https://carlindusdesign.fr/LAJ/#home">Retourner à l'accueil</a></p>
+		</div>
+	</div>
+
+	<script src="skills-form.js"></script>
+</body>
+</html>
