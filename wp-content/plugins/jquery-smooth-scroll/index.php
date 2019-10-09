@@ -1,3 +1,3 @@
-<?php 
-	// Sometimes index files do not works.
+<?php 
+	// Sometimes index files do not works.
 ?>
