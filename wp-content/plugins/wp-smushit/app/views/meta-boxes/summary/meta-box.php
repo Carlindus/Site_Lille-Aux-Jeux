@@ -7,6 +7,7 @@
  * @var string     $human_format
  * @var string     $human_size
  * @var int        $remaining
+ * @var bool       $networkwide
  * @var int        $resize_count
  * @var bool       $resize_enabled
  * @var int        $resize_savings
@@ -67,7 +68,7 @@ if ( ! defined( 'WPINC' ) ) {
 					<p class="wp-smush-stats-label-message">
 						<?php
 						$link_class = 'wp-smush-resize-enable-link';
-						if ( is_multisite() && WP_Smush_Settings::can_access( 'bulk' ) ) {
+						if ( is_multisite() && $networkwide ) {
 							$settings_link = WP_Smush::get_instance()->admin()->settings_link( array(), true, true ) . '#enable-resize';
 						} elseif ( 'bulk' !== $this->get_current_tab() ) {
 							$settings_link = WP_Smush::get_instance()->admin()->settings_link( array(), true ) . '#enable-resize';

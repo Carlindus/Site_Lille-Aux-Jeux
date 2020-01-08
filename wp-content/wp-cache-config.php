@@ -5,7 +5,6 @@ WP-Cache Config Sample File
 See wp-cache.php for author details.
 */
 
-$wpsc_version = 169;
 $wpsc_fix_164 = 1;
 $wpsc_cookies = array ( 0 => 'cookie_notice_accepted', );
 $wp_cache_mobile_groups = '';

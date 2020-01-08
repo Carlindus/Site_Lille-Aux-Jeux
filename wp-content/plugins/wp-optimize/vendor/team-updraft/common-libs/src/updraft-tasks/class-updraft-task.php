@@ -5,12 +5,15 @@
 
 if (!defined('ABSPATH')) die('Access denied.');
 
-if (!class_exists('Updraft_Task_1_1')) :
+if (!defined('UPDRAFT_TASKS_LOCK_TIMEOUT')) define('UPDRAFT_TASKS_LOCK_TIMEOUT', 60);
+
+if (!class_exists('Updraft_Task_1_0')) :
 
 if (!class_exists('Updraft_Task_Options')) require_once('class-updraft-task-options.php');
 if (!class_exists('Updraft_Task_Meta')) require_once('class-updraft-task-meta.php');
+if (!class_exists('Updraft_Semaphore_2_0')) require_once(dirname(__FILE__).'/../updraft-semaphore/class-updraft-semaphore.php');
 
-abstract class Updraft_Task_1_1 {
+abstract class Updraft_Task_1_0 {
 
 	/**
 	 * A unique ID for the specific task
@@ -69,11 +72,19 @@ abstract class Updraft_Task_1_1 {
 	private $class_identifier;
 
 	/**
+	 * An semaphore instance to prevent multiple processes running this at once.
+	 *
+	 * @var Object
+	 */
+	private $semaphore;
+
+	/**
 	 * A logger object that can be used to capture interesting events / messages
 	 *
 	 * @var Object
 	 */
 	protected $_loggers;
+
 
 	/**
 	 * The Task constructor
@@ -84,6 +95,7 @@ abstract class Updraft_Task_1_1 {
 		foreach (get_object_vars($task) as $key => $value)
 			$this->$key = $value;
 	}
+
 
 	/**
 	 * Sets the instance ID.
@@ -192,10 +204,8 @@ abstract class Updraft_Task_1_1 {
 	 * @param array $loggers - the loggers for this task
 	 */
 	public function set_loggers($loggers) {
-		if (is_array($loggers)) {
-			foreach ($loggers as $logger) {
-				$this->add_logger($logger);
-			}
+		foreach ($loggers as $logger) {
+			$this->add_logger($logger);
 		}
 	}
 
@@ -216,6 +226,7 @@ abstract class Updraft_Task_1_1 {
 	public function get_loggers() {
 		return $this->_loggers;
 	}
+
 
 	/**
 	 * The initialisation function that accepts and processes any parameters needed before the task starts
@@ -245,42 +256,40 @@ abstract class Updraft_Task_1_1 {
 	/**
 	 * Attempts to perform the task
 	 *
-	 * @param integer $lock_for - if greater than zero, then lock the task, and don't break until this number of seconds has passed
-	 *
 	 * @return boolean Status of the attempt
 	 */
-	public function attempt($lock_for = 0) {
+	public function attempt() {
 
-		$_task = $this->get_task_from_db($this->get_id());
-
-		if (!$_task) {
-			$this->log("The task with id : {$this->get_id()}, and type '{$this->get_type()}' seems to have been deleted from the database.");
-			return false;
-		}
-
-		if ('complete' == $this->get_status()) {
+		if ($this->get_status() == 'complete') {
 			$this->log("Attempting already complete task with ID : {$this->get_id()}, and type '{$this->get_type()}'. Aborting !");
 			return true;
 		}
 
-		if ($lock_for) {
-			$try = 1;
-			$locked = false;
-			while ($try < 4) {
-				if ($locked = $this->lock($this->get_id(), true, $lock_for)) break;
-				$try ++;
-				sleep(1);
-			}
-			if (!$locked) {
-				$this->fail('could_not_lock', 'The task could not be locked');
-				return false;
-			}
-		}
-		
 		$attempts = $this->get_attempts();
 
-		if ($attempts >= $this->get_max_attempts()) {
+		if ($attempts >= self::get_max_attempts()) {
 			$this->fail("max_attempts_exceeded", "Maximum attempts ($attempts) exceeded for task");
+			return false;
+		}
+
+		$label = $this->get_unique_label();
+		$this->semaphore = new Updraft_Semaphore_2_0($label);
+
+		$last_scheduled_action_called_at = get_option("updraft_last_scheduled_$label");
+		$seconds_ago = time() - $last_scheduled_action_called_at;
+
+		$time_out = defined('UPDRAFT_TASKS_LOCK_TIMEOUT') ? UPDRAFT_TASKS_LOCK_TIMEOUT : 60;
+
+		if ($last_scheduled_action_called_at && $seconds_ago < $time_out) {
+
+			$this->log(sprintf('Failed to gain semaphore lock (%s) - another process which was started only %s seconds_ago is already processing the task - Aborting!', $label, $seconds_ago));
+			return false;
+		}
+
+		update_option("updraft_last_scheduled_$label", time());
+		
+		if (!$this->semaphore->lock()) {
+			$this->log(sprintf('Failed to gain semaphore lock (%s) - another process is already processing the task - Aborting!', $label));
 			return false;
 		}
 
@@ -290,54 +299,16 @@ abstract class Updraft_Task_1_1 {
 		
 		if ($status) {
 			$this->complete();
+			$this->semaphore->unlock();
 			$this->log("Completed processing task with ID : {$this->get_id()}, and type '{$this->get_type()}'");
+			$this->semaphore->clean_up();
 		}
 
-		if ($lock_for) $this->lock($this->get_id(), false);
-		
 		return $status;
 	}
 
 	/**
-	 * Lock or unlock a task
-	 *
-	 * @param Integer - $task_id  - task identifier
-	 * @param Boolean - $lock	  - whether to lock or unlock
-	 * @param Integer - $lock_for - if already locked, how long after which to break the lock
-	 *
-	 * @return Boolean - whether the operation was successful
-	 */
-	public function lock($task_id, $lock = true, $lock_for = 60) {
-	
-		global $wpdb;
-		
-		if (!$lock) {
-			return $wpdb->update($wpdb->base_prefix.'tm_tasks', array('last_locked_at' => 0), array('id' => $task_id)) ? true : false;
-		}
-	
-		// Mode: lock. Attempt to set the lock
-		$affected = $wpdb->update($wpdb->base_prefix.'tm_tasks', array('last_locked_at' => time()), array('id' => $task_id, 'last_locked_at' => 0));
-		
-		// Success.
-		if (1 == $affected) return true;
-		
-		// Failed - something else already had it locked. Grab the lock if it had expired.
-		$affected = $wpdb->update($wpdb->base_prefix.'tm_tasks', array('last_locked_at' => time()), array('id' => $task_id, 'last_locked_at' => 0));
-		
-		$expires_at = time() - $lock_for;
-
-		$affected = $wpdb->query($wpdb->prepare("
-			UPDATE {$wpdb->base_prefix}tm_tasks
-			   SET last_locked_at = %d
-			 WHERE id = %d'
-			   AND last_locked_at <= %s
-		", time(), $task_id, $expires_at));
-		
-		return $affected ? true : false;
-	}
-	
-	/**
-	 * This function is called to allow for the task to perform a small chunk of work.
+	 * This function is called to allow for the task to perfrom a small chunk of work.
 	 * It should be written in a way that anticipates it being killed off at any time.
 	 */
 	abstract public function run();
@@ -359,7 +330,7 @@ abstract class Updraft_Task_1_1 {
 	/**
 	 * Fires if the task fails, any clean up code and logging should go here
 	 *
-	 * @param String $error_code	- A code for the failure
+	 * @param String $error_code    - A code for the failure
 	 * @param String $error_message - A description for the failure
 	 */
 	public function fail($error_code = "Unknown", $error_message = "Unknown") {
@@ -371,6 +342,8 @@ abstract class Updraft_Task_1_1 {
 
 		$this->update_option("error_code", $error_code);
 		$this->update_option("error_message", $error_message);
+
+		if ($this->semaphore) $this->semaphore->clean_up();
 
 		do_action('ud_task_failed', $this);
 
@@ -442,7 +415,7 @@ abstract class Updraft_Task_1_1 {
 	 * @param  String $option the name of the option to update
 	 * @param  Mixed  $value  the value to save to the option
 	 *
-	 * @return Mixed		  the status of the add operation
+	 * @return Mixed          the status of the add operation
 	 */
 	public function add_option($option, $value) {
 		return Updraft_Task_Options::update_task_option($this->id, $option, $value);
@@ -454,7 +427,7 @@ abstract class Updraft_Task_1_1 {
 	 * @param  String $option the name of the option to update
 	 * @param  Mixed  $value  the value to save to the option
 	 *
-	 * @return Mixed		  the status of the update operation
+	 * @return Mixed          the status of the update operation
 	 */
 	public function update_option($option, $value) {
 		return Updraft_Task_Options::update_task_option($this->id, $option, $value);
@@ -465,7 +438,7 @@ abstract class Updraft_Task_1_1 {
 	 *
 	 * @param  String $option the option to delete
 	 *
-	 * @return Boolean		the result of the delete operation
+	 * @return Boolean        the result of the delete operation
 	 */
 	public function delete_option($option) {
 		return Updraft_Task_Options::delete_task_option($this->id, $option);
@@ -503,7 +476,7 @@ abstract class Updraft_Task_1_1 {
 	/**
 	 * Updates the status of the given task in the DB
 	 *
-	 * @param String $id	 - the id of the task
+	 * @param String $id     - the id of the task
 	 * @param String $status - the status of the task
 	 *
 	 * @return Boolean - the stauts of the update operation
@@ -514,7 +487,7 @@ abstract class Updraft_Task_1_1 {
 			return false;
 
 		global $wpdb;
-		$sql = $wpdb->prepare("UPDATE {$wpdb->base_prefix}tm_tasks SET status = %s WHERE id = %d", $status, $id);
+		$sql = $wpdb->prepare("UPDATE {$wpdb->prefix}tm_tasks SET status = %s WHERE id = %d", $status, $id);
 
 		return $wpdb->query($sql);
 	}
@@ -522,7 +495,7 @@ abstract class Updraft_Task_1_1 {
 	/**
 	 * Updates the number of attempts made for the given task in the DB
 	 *
-	 * @param String $id	   - the id of the task
+	 * @param String $id       - the id of the task
 	 * @param int 	 $attempts - the status of the task
 	 *
 	 * @return Boolean - the stauts of the update operation
@@ -533,7 +506,7 @@ abstract class Updraft_Task_1_1 {
 			return false;
 
 		global $wpdb;
-		$sql = $wpdb->prepare("UPDATE {$wpdb->base_prefix}tm_tasks SET attempts = %s WHERE id = %d", $attempts, $id);
+		$sql = $wpdb->prepare("UPDATE {$wpdb->prefix}tm_tasks SET attempts = %s WHERE id = %d", $attempts, $id);
 
 		return $wpdb->query($sql);
 	}
@@ -546,7 +519,7 @@ abstract class Updraft_Task_1_1 {
 	public function delete() {
 		global $wpdb;
 
-		$sql = $wpdb->prepare("DELETE FROM {$wpdb->base_prefix}tm_tasks WHERE id = %d", $this->id);
+		$sql = $wpdb->prepare("DELETE FROM {$wpdb->prefix}tm_tasks WHERE id = %d", $this->id);
 		return $wpdb->query($sql);
 	}
 
@@ -578,15 +551,17 @@ abstract class Updraft_Task_1_1 {
 	/**
 	 * Captures and logs any interesting messages
 	 *
-	 * @param String $message	- the error message
+	 * @param String $message    - the error message
 	 * @param String $error_type - the error type
 	 */
 	public function log($message, $error_type = 'info') {
 
 		if (isset($this->_loggers)) {
 			foreach ($this->_loggers as $logger) {
-				$logger->log($error_type, $message);
+				$logger->log($message, $error_type);
 			}
+		} else {
+			error_log($message);
 		}
 	}
 
@@ -616,8 +591,8 @@ abstract class Updraft_Task_1_1 {
 	 *
 	 * @return int Max attempts permitted for task type
 	 */
-	private function get_max_attempts() {
-		return apply_filters('ud_max_attempts', 5, $this);
+	public static function get_max_attempts(){
+		return apply_filters("ud_max_attempts", 5, get_called_class());
 	}
 
 	/**
@@ -646,47 +621,38 @@ abstract class Updraft_Task_1_1 {
 	 *
 	 * @param String $type 		  A identifier for the task
 	 * @param String $description A description of the task
-	 * @param Mixed  $options	  A list of options to initialise the task
-	 * @param String $task_class  Class name of task; only needed/used on PHP 5.2 (due to lack of late static binding)
+	 * @param Mixed  $options     A list of options to initialise the task
 	 *
 	 * @return Updraft_Task|false Task object, false otherwise.
 	 */
-	public static function create_task($type, $description, $options = array(), $task_class = '') {
+	public static function create_task($type, $description, $options = array()) {
 		global $wpdb;
 
 		$user_id = get_current_user_id();
-		$class_identifier = function_exists('get_called_class') ? get_called_class() : $task_class;// phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.get_called_classFound -- Check to make sure its OK to ignore
+		$class_identifier = get_called_class();
 
-		if (!$user_id) return false;
+		if (!$user_id)
+			return false;
 
-		$sql = $wpdb->prepare("INSERT INTO {$wpdb->base_prefix}tm_tasks (type, user_id, description, class_identifier, status) VALUES (%s, %d, %s, %s, %s)", $type, $user_id, $description, $class_identifier, 'active');
+		$sql = $wpdb->prepare("INSERT INTO {$wpdb->prefix}tm_tasks (type, user_id, description, class_identifier, status) VALUES (%s, %d, %s, %s, %s)", $type, $user_id, $description, $class_identifier, 'active');
 
 		$wpdb->query($sql);
 
 		$task_id = $wpdb->insert_id;
 
-		if (!$task_id) return false;
+		if (!$task_id)
+			return false;
 
-		$_task = $wpdb->get_row("SELECT * FROM {$wpdb->base_prefix}tm_tasks WHERE id = {$task_id} LIMIT 1");
+		$_task = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}tm_tasks WHERE id = {$task_id} LIMIT 1");
 
 		$task = new $class_identifier($_task);
 
-		if (!$task) return false;
+		if (!$task)
+			return false;
 
 		$task->initialise($options);
 
 		return $task;
-	}
-
-	/**
-	 * Select the current task from the database
-	 *
-	 * @param int $task_id - The task ID
-	 * @return object|false
-	 */
-	private function get_task_from_db($task_id) {
-		global $wpdb;
-		return $wpdb->get_row("SELECT * FROM {$wpdb->base_prefix}tm_tasks WHERE id = {$task_id} LIMIT 1");		
 	}
 }
 endif;

@@ -24,7 +24,7 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 		return $columns;
 	}
 
-	public function __construct() {
+	function __construct() {
 		parent::__construct( array(
 			'singular' => 'post',
 			'plural' => 'posts',
@@ -32,9 +32,11 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 		) );
 	}
 
-	public function prepare_items() {
+	function prepare_items() {
 		$current_screen = get_current_screen();
 		$per_page = $this->get_items_per_page( $current_screen->id . '_per_page' );
+
+		$this->_column_headers = $this->get_column_info();
 
 		$args = array(
 			'posts_per_page' => $per_page,
@@ -58,7 +60,7 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 		}
 
 		if ( ! empty( $_REQUEST['order'] )
-		and 'asc' == strtolower( $_REQUEST['order'] ) ) {
+		&& 'asc' == strtolower( $_REQUEST['order'] ) ) {
 			$args['order'] = 'ASC';
 		}
 
@@ -96,24 +98,20 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 		) );
 	}
 
-	protected function get_views() {
+	function get_views() {
 		$status_links = array();
 		$post_status = empty( $_REQUEST['post_status'] )
 			? '' : $_REQUEST['post_status'];
 
 		// Inbox
-		Flamingo_Inbound_Message::find( array(
-			'post_status' => 'any',
-		) );
-
+		Flamingo_Inbound_Message::find( array( 'post_status' => 'any' ) );
 		$posts_in_inbox = Flamingo_Inbound_Message::$found_items;
 
 		$inbox = sprintf(
 			_nx( 'Inbox <span class="count">(%s)</span>',
 				'Inbox <span class="count">(%s)</span>',
 				$posts_in_inbox, 'posts', 'flamingo' ),
-			number_format_i18n( $posts_in_inbox )
-		);
+			number_format_i18n( $posts_in_inbox ) );
 
 		$status_links['inbox'] = sprintf( '<a href="%1$s"%2$s>%3$s</a>',
 			menu_page_url( 'flamingo_inbound', false ),
@@ -122,17 +120,14 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 
 		// Spam
 		Flamingo_Inbound_Message::find( array(
-			'post_status' => Flamingo_Inbound_Message::spam_status,
-		) );
-
+			'post_status' => Flamingo_Inbound_Message::spam_status ) );
 		$posts_in_spam = Flamingo_Inbound_Message::$found_items;
 
 		$spam = sprintf(
 			_nx( 'Spam <span class="count">(%s)</span>',
 				'Spam <span class="count">(%s)</span>',
 				$posts_in_spam, 'posts', 'flamingo' ),
-			number_format_i18n( $posts_in_spam )
-		);
+			number_format_i18n( $posts_in_spam ) );
 
 		$status_links['spam'] = sprintf( '<a href="%1$s"%2$s>%3$s</a>',
 			esc_url( add_query_arg(
@@ -146,10 +141,7 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 		);
 
 		// Trash
-		Flamingo_Inbound_Message::find( array(
-			'post_status' => 'trash',
-		) );
-
+		Flamingo_Inbound_Message::find( array( 'post_status' => 'trash' ) );
 		$posts_in_trash = Flamingo_Inbound_Message::$found_items;
 
 		if ( empty( $posts_in_trash ) ) {
@@ -160,8 +152,7 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 			_nx( 'Trash <span class="count">(%s)</span>',
 				'Trash <span class="count">(%s)</span>',
 				$posts_in_trash, 'posts', 'flamingo' ),
-			number_format_i18n( $posts_in_trash )
-		);
+			number_format_i18n( $posts_in_trash ) );
 
 		$status_links['trash'] = sprintf( '<a href="%1$s"%2$s>%3$s</a>',
 			esc_url( add_query_arg(
@@ -171,17 +162,16 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 				menu_page_url( 'flamingo_inbound', false )
 			) ),
 			'trash' == $post_status ? ' class="current"' : '',
-			$trash
-		);
+			$trash );
 
 		return $status_links;
 	}
 
-	public function get_columns() {
+	function get_columns() {
 		return get_column_headers( get_current_screen() );
 	}
 
-	protected function get_sortable_columns() {
+	function get_sortable_columns() {
 		$columns = array(
 			'subject' => array( 'subject', false ),
 			'from' => array( 'from', false ),
@@ -191,14 +181,14 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 		return $columns;
 	}
 
-	protected function get_bulk_actions() {
+	function get_bulk_actions() {
 		$actions = array();
 
 		if ( $this->is_trash ) {
 			$actions['untrash'] = __( 'Restore', 'flamingo' );
 		}
 
-		if ( $this->is_trash or ! EMPTY_TRASH_DAYS ) {
+		if ( $this->is_trash || ! EMPTY_TRASH_DAYS ) {
 			$actions['delete'] = __( 'Delete Permanently', 'flamingo' );
 		} else {
 			$actions['trash'] = __( 'Move to Trash', 'flamingo' );
@@ -213,24 +203,21 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 		return $actions;
 	}
 
-	protected function extra_tablenav( $which ) {
+	function extra_tablenav( $which ) {
 		$channel = 0;
 
 		if ( ! empty( $_REQUEST['channel_id'] ) ) {
-			$term = get_term( $_REQUEST['channel_id'],
-				Flamingo_Inbound_Message::channel_taxonomy
-			);
+			$term = get_term( $_REQUEST['channel_id'], Flamingo_Inbound_Message::channel_taxonomy );
 
-			if ( ! empty( $term ) and ! is_wp_error( $term ) ) {
+			if ( ! empty( $term ) && ! is_wp_error( $term ) ) {
 				$channel = $term->term_id;
 			}
 
 		} elseif ( ! empty( $_REQUEST['channel'] ) ) {
 			$term = get_term_by( 'slug', $_REQUEST['channel'],
-				Flamingo_Inbound_Message::channel_taxonomy
-			);
+				Flamingo_Inbound_Message::channel_taxonomy );
 
-			if ( ! empty( $term ) and ! is_wp_error( $term ) ) {
+			if ( ! empty( $term ) && ! is_wp_error( $term ) ) {
 				$channel = $term->term_id;
 			}
 		}
@@ -256,14 +243,13 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 			submit_button( __( 'Filter', 'flamingo' ),
 				'secondary', false, false, array( 'id' => 'post-query-submit' ) );
 
-			if ( ! $this->is_spam and ! $this->is_trash ) {
+			if ( ! $this->is_spam && ! $this->is_trash ) {
 				submit_button( __( 'Export', 'flamingo' ),
 					'secondary', 'export', false );
 			}
 		}
 
-		if ( $this->is_trash
-		and current_user_can( 'flamingo_delete_inbound_messages' ) ) {
+		if ( $this->is_trash && current_user_can( 'flamingo_delete_inbound_messages' ) ) {
 			submit_button( __( 'Empty Trash', 'flamingo' ),
 				'button-secondary apply', 'delete_all', false );
 		}
@@ -272,117 +258,78 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 <?php
 	}
 
-	protected function column_default( $item, $column_name ) {
+	function column_default( $item, $column_name ) {
 		do_action( 'manage_flamingo_inbound_posts_custom_column',
 			$column_name, $item->id );
 	}
 
-	protected function column_cb( $item ) {
+	function column_cb( $item ) {
 		return sprintf(
 			'<input type="checkbox" name="%1$s[]" value="%2$s" />',
 			$this->_args['singular'],
-			$item->id
-		);
+			$item->id );
 	}
 
-	protected function column_subject( $item ) {
+	function column_subject( $item ) {
 		if ( $this->is_trash ) {
-			return sprintf( '<strong>%s</strong>', esc_html( $item->subject ) );
-		}
-
-		if ( current_user_can( 'flamingo_edit_inbound_message', $item->id ) ) {
-			$edit_link = add_query_arg(
-				array(
-					'post' => $item->id,
-					'action' => 'edit',
-				),
-				menu_page_url( 'flamingo_inbound', false )
-			);
-
-			return sprintf(
-				'<strong><a class="row-title" href="%1$s" aria-label="%2$s">%3$s</a></strong>',
-				esc_url( $edit_link ),
-				esc_attr( sprintf(
-					__( 'Edit &#8220;%s&#8221;', 'flamingo' ),
-					$item->subject
-				) ),
-				esc_html( $item->subject )
-			);
-		}
-
-		return sprintf( '<strong>%1$s</strong>',
-			esc_html( $item->subject )
-		);
-	}
-
-	protected function handle_row_actions( $item, $column_name, $primary ) {
-		if ( $column_name !== $primary ) {
-			return '';
+			return '<strong>' . esc_html( $item->subject ) . '</strong>';
 		}
 
 		$actions = array();
+		$post_id = absint( $item->id );
 
-		if ( current_user_can( 'flamingo_edit_inbound_message', $item->id ) ) {
-			$link = add_query_arg(
-				array(
-					'post' => $item->id,
-					'action' => 'edit',
-				),
-				menu_page_url( 'flamingo_inbound', false )
-			);
+		$base_url = add_query_arg(
+			array(
+				'post' => $post_id,
+			),
+			menu_page_url( 'flamingo_inbound', false )
+		);
 
+		$edit_link = add_query_arg( array( 'action' => 'edit' ), $base_url );
+
+		if ( current_user_can( 'flamingo_edit_inbound_message', $post_id ) ) {
 			$actions['edit'] = sprintf( '<a href="%1$s">%2$s</a>',
-				esc_url( $link ),
-				esc_html( __( 'View', 'flamingo' ) )
-			);
+				esc_url( $edit_link ), esc_html( __( 'View', 'flamingo' ) ) );
 		}
 
 		if ( $item->spam
-		and current_user_can( 'flamingo_unspam_inbound_message', $item->id ) ) {
-			$link = add_query_arg(
-				array(
-					'post' => $item->id,
-					'action' => 'unspam',
-				),
-				menu_page_url( 'flamingo_inbound', false )
-			);
-
+		&& current_user_can( 'flamingo_unspam_inbound_message', $post_id ) ) {
+			$link = add_query_arg( array( 'action' => 'unspam' ), $base_url );
 			$link = wp_nonce_url( $link,
-				'flamingo-unspam-inbound-message_' . $item->id );
+				'flamingo-unspam-inbound-message_' . $post_id );
 
 			$actions['unspam'] = sprintf( '<a href="%1$s">%2$s</a>',
-				esc_url( $link ),
-				esc_html( __( 'Not Spam', 'flamingo' ) )
-			);
+				esc_url( $link ), esc_html( __( 'Not Spam', 'flamingo' ) ) );
 		}
 
 		if ( ! $item->spam
-		and current_user_can( 'flamingo_spam_inbound_message', $item->id ) ) {
-			$link = add_query_arg(
-				array(
-					'post' => $item->id,
-					'action' => 'spam',
-				),
-				menu_page_url( 'flamingo_inbound', false )
-			);
-
+		&& current_user_can( 'flamingo_spam_inbound_message', $post_id ) ) {
+			$link = add_query_arg( array( 'action' => 'spam' ), $base_url );
 			$link = wp_nonce_url( $link,
-				'flamingo-spam-inbound-message_' . $item->id );
+				'flamingo-spam-inbound-message_' . $post_id );
 
 			$actions['spam'] = sprintf( '<a href="%1$s">%2$s</a>',
-				esc_url( $link ),
-				esc_html( __( 'Spam', 'flamingo' ) )
-			);
+				esc_url( $link ), esc_html( __( 'Spam', 'flamingo' ) ) );
 		}
 
-		return $this->row_actions( $actions );
+		if ( current_user_can( 'flamingo_edit_inbound_message', $post_id ) ) {
+			return sprintf( '<strong><a class="row-title" href="%1$s" aria-label="%2$s">%3$s</a></strong> %4$s',
+				esc_url( $edit_link ),
+				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;', 'flamingo' ), $item->subject ) ),
+				esc_html( $item->subject ),
+				$this->row_actions( $actions ) );
+		} else {
+			return sprintf( '<strong>%1$s</strong> %2$s',
+				esc_html( $item->subject ),
+				$this->row_actions( $actions ) );
+		}
 	}
 
-	protected function column_from( $item ) {
+	function column_from( $item ) {
 		return esc_html( $item->from );
 	}
 
-	protected function column_channel( $item ) {
+	function column_channel( $item ) {
 		if ( empty( $item->channel ) ) {
 			return '';
 		}
@@ -390,7 +337,7 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 		$term = get_term_by( 'slug', $item->channel,
 			Flamingo_Inbound_Message::channel_taxonomy );
 
-		if ( empty( $term ) or is_wp_error( $term ) ) {
+		if ( empty( $term ) || is_wp_error( $term ) ) {
 			return $item->channel;
 		}
 
@@ -402,7 +349,7 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 		while ( $parent = array_pop( $ancestors ) ) {
 			$parent = get_term( $parent, Flamingo_Inbound_Message::channel_taxonomy );
 
-			if ( empty( $parent ) or is_wp_error( $parent ) ) {
+			if ( empty( $parent ) || is_wp_error( $parent ) ) {
 				continue;
 			}
 
@@ -436,7 +383,7 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 		return $output;
 	}
 
-	protected function column_date( $item ) {
+	function column_date( $item ) {
 		$post = get_post( $item->id );
 
 		if ( ! $post ) {
@@ -449,15 +396,12 @@ class Flamingo_Inbound_Messages_List_Table extends WP_List_Table {
 
 		$time_diff = time() - $time;
 
-		if ( $time_diff > 0 and $time_diff < 24*60*60 ) {
+		if ( $time_diff > 0 && $time_diff < 24*60*60 ) {
 			$h_time = sprintf( __( '%s ago', 'flamingo' ), human_time_diff( $time ) );
 		} else {
 			$h_time = mysql2date( __( 'Y/m/d', 'flamingo' ), $m_time );
 		}
 
-		return sprintf( '<abbr aria-label="%2$s">%1$s</abbr>',
-			esc_html( $h_time ),
-			esc_attr( $t_time )
-		);
+		return '<abbr aria-label="' . $t_time . '">' . $h_time . '</abbr>';
 	}
 }

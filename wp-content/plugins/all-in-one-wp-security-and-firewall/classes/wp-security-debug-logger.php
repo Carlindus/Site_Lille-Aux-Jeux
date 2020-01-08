@@ -26,7 +26,7 @@ class AIOWPSecurity_Logger
     
     function get_debug_timestamp()
     {
-        return '['.current_time( 'mysql' ).'] - ';
+        return '['.date('m/d/Y g:i A').'] - ';
     }
     
     function get_debug_status($level)

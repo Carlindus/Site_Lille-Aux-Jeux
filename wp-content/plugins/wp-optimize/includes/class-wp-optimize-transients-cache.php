@@ -17,6 +17,7 @@ class WP_Optimize_Transients_Cache {
 	 * WP_Optimize_Transients_Cache constructor.
 	 */
 	public function __construct() {
+
 	}
 
 	/**
@@ -41,7 +42,7 @@ class WP_Optimize_Transients_Cache {
 	 * @param int    $expiration
 	 */
 	public function set($key, &$value, $expiration = 0) {
-		$keep_free_mem = $this->_keep_free_mem ? $this->_keep_free_mem : 16 * 1048576;
+		$keep_free_mem = $this->_keep_free_mem ? $this->_keep_free_mem : 16 * MB_IN_BYTES;
 
 		$used_memory = memory_get_usage();
 		$free_memory = WP_Optimize()->get_free_memory();

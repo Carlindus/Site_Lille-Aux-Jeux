@@ -76,7 +76,7 @@ if( have_rows('contenu_laj') ):
 						if( get_row_layout() == 'bloc_bouton' ): ?>
 
 							<div class="row justify-content-center mt-3">
-									<a class="cta" href="<?php echo the_sub_field('bloc_bouton_lien'); ?>"><?php echo the_sub_field('bloc_bouton_texte'); ?></a>
+									<a class="cta" href="<?php echo the_sub_field('bloc_bouton_lien'); ?>" target="_blank"><?php echo the_sub_field('bloc_bouton_texte'); ?></a>
 							</div>
 
 						<?php endif;

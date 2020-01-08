@@ -63,9 +63,9 @@ class AIOWPSecurity_List_Blocked_IP extends AIOWPSecurity_List_Table
         $columns = array(
             'cb' => '<input type="checkbox" />', //Render a checkbox
             'id' => 'ID',
-            'blocked_ip' => __('Blocked IP', 'all-in-one-wp-security-and-firewall'),
-            'block_reason' => __('Reason', 'all-in-one-wp-security-and-firewall'),
-            'blocked_date' => __('Date', 'all-in-one-wp-security-and-firewall')
+            'blocked_ip' => 'Blocked IP',
+            'block_reason' => 'Reason',
+            'blocked_date' => 'Date'
         );
         return $columns;
     }
@@ -84,7 +84,7 @@ class AIOWPSecurity_List_Blocked_IP extends AIOWPSecurity_List_Table
     function get_bulk_actions()
     {
         $actions = array(
-            'unblock' => __('Unblock', 'all-in-one-wp-security-and-firewall')
+            'unblock' => 'Unblock'
         );
         return $actions;
     }

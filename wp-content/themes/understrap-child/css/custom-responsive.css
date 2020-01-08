@@ -1,164 +1,164 @@
-@media screen and (min-width:576px) {
-  body{
-    padding:0;
-  }
-  #home .owl-item>div {
-  height: 100vh;
-  }
-  .owl-carousel div p,
-  .owl-carousel div a p {
-    margin-bottom: 20vh;
-  }
-  .owl-dots {
-    bottom: -2vh;
-  }
-  .titlePage {
-    margin: 20px 0 5vmax 0;
-  }
-  #wrapper-navbar {
-    padding-bottom: 10px;
-  }
-  /* configuration des module */
-  .modL h3 {
-    left: -20px;
-  }
-  .modR h3 {
-    right: -20px;
-  }
-  /* configuration formulaire */
-  .wpcf7 .wpcf7-form fieldset:first-of-type label:not(.inputFullwidth){
-    width:46%;
-  }
-  .wpcf7 .wpcf7-form fieldset:first-of-type label.inputFullwidth{
-   width: 96%;
-  }
-  .wpcf7 .wpcf7-form fieldset:nth-of-type(2) input[type="checkbox"]{
-    margin: auto;
-  }
-
-}
-
-/**********************************/
-
-/**********************************/
-
-/**********************************/
-
-@media screen and (min-width:768px) {
-  html {
-    font-size: 0.9rem;
-  }
-  .logoHome img{
-    max-width: 60%;
-  }
-
-.owl-dots {
-  bottom: 4vh;
-}
-
-  /* header */
-  .headerContainer {
-    height: 300px;
-  }
-  .headerContainer p {
-    font-size: 2rem;
-  }
-  .wrapper {
-    padding-top: 30px;
-    ;
-  }
-  #wrapper-navbar ul li {
-    width: calc(100% / 4);
-    border-radius: 0 0 15px 15px;
-  }
-  #wrapper-navbar ul li a {
-    padding: 5px 0;
-    font-size: 1rem;
-  }
-  /* footer */
-
-  #custom_html-2 {
-    margin-top: 0;
-    align-items: flex-start;
-  }
-  #wrapper-footer-full .fab {
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 0;
-  }
-  h2 {
-    max-width: 75%;
-  }
-  .nav-front h2{
-  font-size: 1rem;
-  }
-  /* modules */
-  .module {
-    max-width: 100%;
-  }
-  article .tabclose {
-    margin-top: -15px;
-  }
-}
-
-/**********************************/
-
-/**********************************/
-
-/**********************************/
-
-@media screen and (min-width:992px) {
-  html {
-    font-size: 1rem;
-  }
-  .logoHome img{
-    max-width: 50%;
-  }
-
-  h2{
-    max-width: 50%;
-  }
-  .encart {
-    font-size: 1rem;
-  }
-  .formule {
-    margin: 1vmax auto;
-  }
-  article .tabclose {
-    margin-top: -16px;
-  }
-  #wrapper-navbar ul li {
-    padding: 5px 15px;
-    margin: 0 20px;
-  }
-  .wpcf7 {
-    width: 80%;
-  }
-}
-
-/**********************************/
-
-/**********************************/
-
-/**********************************/
-
-@media screen and (min-width:1200px) {
-  html {
-    font-size: 1.1rem;
-  }
-  .logoHome img{
-    max-width: 30%;
-  }
-  .headerContainer {
-    height: 350px;
-  }
-  .nav-front h2{
-    max-width: 100%;
-  }
-  article .tabclose {
-    margin-top: -17px;
-  }
-  .headerContainer {
-    background-position: center center;
-  }
+@media screen and (min-width:576px) {
+  body{
+    padding:0;
+  }
+  #home .owl-item>div {
+  height: 100vh;
+  }
+  .owl-carousel div p,
+  .owl-carousel div a p {
+    margin-bottom: 20vh;
+  }
+  .owl-dots {
+    bottom: -2vh;
+  }
+  .titlePage {
+    margin: 20px 0 5vmax 0;
+  }
+  #wrapper-navbar {
+    padding-bottom: 10px;
+  }
+  /* configuration des module */
+  .modL h3 {
+    left: -20px;
+  }
+  .modR h3 {
+    right: -20px;
+  }
+  /* configuration formulaire */
+  .wpcf7 .wpcf7-form fieldset:first-of-type label:not(.inputFullwidth){
+    width:46%;
+  }
+  .wpcf7 .wpcf7-form fieldset:first-of-type label.inputFullwidth{
+   width: 96%;
+  }
+  .wpcf7 .wpcf7-form fieldset:nth-of-type(2) input[type="checkbox"]{
+    margin: auto;
+  }
+
+}
+
+/**********************************/
+
+/**********************************/
+
+/**********************************/
+
+@media screen and (min-width:768px) {
+  html {
+    font-size: 0.9rem;
+  }
+  .logoHome img{
+    max-width: 60%;
+  }
+
+.owl-dots {
+  bottom: 4vh;
+}
+
+  /* header */
+  .headerContainer {
+    height: 300px;
+  }
+  .headerContainer p {
+    font-size: 2rem;
+  }
+  .wrapper {
+    padding-top: 30px;
+    ;
+  }
+  #wrapper-navbar ul li {
+    width: calc(100% / 4);
+    border-radius: 0 0 15px 15px;
+  }
+  #wrapper-navbar ul li a {
+    padding: 5px 0;
+    font-size: 1rem;
+  }
+  /* footer */
+
+  #custom_html-2 {
+    margin-top: 0;
+    align-items: flex-start;
+  }
+  #wrapper-footer-full .fab {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+  }
+  h2 {
+    max-width: 75%;
+  }
+  .nav-front h2{
+  font-size: 1rem;
+  }
+  /* modules */
+  .module {
+    max-width: 100%;
+  }
+  article .tabclose {
+    margin-top: -15px;
+  }
+}
+
+/**********************************/
+
+/**********************************/
+
+/**********************************/
+
+@media screen and (min-width:992px) {
+  html {
+    font-size: 1rem;
+  }
+  .logoHome img{
+    max-width: 50%;
+  }
+
+  h2{
+    max-width: 50%;
+  }
+  .encart {
+    font-size: 1rem;
+  }
+  .formule {
+    margin: 1vmax auto;
+  }
+  article .tabclose {
+    margin-top: -16px;
+  }
+  #wrapper-navbar ul li {
+    padding: 5px 15px;
+    margin: 0 20px;
+  }
+  .wpcf7 {
+    width: 80%;
+  }
+}
+
+/**********************************/
+
+/**********************************/
+
+/**********************************/
+
+@media screen and (min-width:1200px) {
+  html {
+    font-size: 1.1rem;
+  }
+  .logoHome img{
+    max-width: 30%;
+  }
+  .headerContainer {
+    height: 350px;
+  }
+  .nav-front h2{
+    max-width: 100%;
+  }
+  article .tabclose {
+    margin-top: -17px;
+  }
+  .headerContainer {
+    background-position: center center;
+  }

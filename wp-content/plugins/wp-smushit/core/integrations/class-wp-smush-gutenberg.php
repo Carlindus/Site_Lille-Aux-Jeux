@@ -28,8 +28,9 @@ class WP_Smush_Gutenberg extends WP_Smush_Integration {
 	 * @since 2.8.1
 	 */
 	public function __construct() {
-		$this->module = 'gutenberg';
-		$this->class  = 'free';
+		$this->module   = 'gutenberg';
+		$this->class    = 'free';
+		$this->priority = 3;
 
 		$this->check_for_gutenberg();
 

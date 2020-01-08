@@ -1,6 +1,6 @@
 <?php
 /**
- * Lazy Load meta box header.
+ * Lazyload meta box header.
  *
  * @since 3.2.0
  * @package WP_Smush

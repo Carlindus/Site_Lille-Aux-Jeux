@@ -2,14 +2,6 @@
 # Please note that other plugins and resources write to this file. If the time-stamp above is different
 # than the current time-stamp on the file system then another resource has updated this file.
 # Duplicator only writes to this file once during the install process while running the installer.php file.
-
-# BEGIN rlrssslReallySimpleSSL rsssl_version[3.2.5]
-<IfModule mod_rewrite.c>
-RewriteEngine on
-RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
-</IfModule>
-# END rlrssslReallySimpleSSL
 # BEGIN WordPress
 <IfModule mod_rewrite.c>
 RewriteEngine On

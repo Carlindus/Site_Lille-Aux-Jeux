@@ -33,31 +33,33 @@ class WP_Optimize_Browser_Cache {
 		$this->_options = $this->_wp_optimize->get_options();
 	}
 
-	/**
+	/***
 	 * Check headers for Cache-Control and Etag. And if they are exist return true.
 	 *
 	 * @return bool|WP_Error
-	 **/
-	public function is_enabled() {
+	 */
+	public function is_cache_enabled() {
+		$style = get_template_directory_uri() . '/style.css';
 
-		static $is_enabled;
-		if (isset($is_enabled)) return $is_enabled;
+		$response = wp_remote_get($style, array('timeout' => 15));
 
-		$headers = WP_Optimize()->get_stylesheet_headers();
+		if (is_a($response, 'WP_Error')) return $response;
 
-		if (is_wp_error($headers)) return $headers;
+		$headers = wp_remote_retrieve_headers($response);
 
-		if (array_key_exists('cache-control', $headers) && array_key_exists('expires', $headers)) {
-			$is_enabled = true;
-		} else {
-			$is_enabled = false;
+		if (is_a($headers, 'Requests_Utility_CaseInsensitiveDictionary')) {
+			$headers = $headers->getAll();
 		}
 
-		if ($this->is_browser_cache_section_exists() && false === $this->_wp_optimize->is_apache_module_loaded(array('mod_expires', 'mod_headers'))) {
-			$is_enabled = new WP_Error('Browser cache', __('We successfully updated your .htaccess file. But it seems one of Apache modules - mod_expires or mod_headers is not active.', 'wp-optimize'));
+		if (false === array_key_exists('etag', $headers) && array_key_exists('cache-control', $headers)) {
+			return true;
 		}
 
-		return $is_enabled;
+		if ($this->is_browser_cache_section_exists() && !$this->_wp_optimize->is_apache_module_loaded(array('mod_expires', 'mod_headers'))) {
+			return new WP_Error('Browser cache', __('We successfully updated your .htaccess file. But it seems one of Apache modules - mod_expires or mod_headers is not active.', 'wp-optimize'));
+		}
+
+		return false;
 	}
 
 	/**
@@ -135,7 +137,7 @@ class WP_Optimize_Browser_Cache {
 		}
 
 		if ($section_updated) {
-			$enabled = $this->is_enabled();
+			$enabled = $this->is_cache_enabled();
 
 			// save $expire value to options.
 			$this->_options->update_option('browser_cache_expire_days', $expire_days);
@@ -171,7 +173,7 @@ class WP_Optimize_Browser_Cache {
 
 			return array(
 				'success' => false,
-				'enabled' => $this->is_enabled(),
+				'enabled' => $this->is_cache_enabled(),
 				'error_message' => $message,
 				'output' => $output,
 			);

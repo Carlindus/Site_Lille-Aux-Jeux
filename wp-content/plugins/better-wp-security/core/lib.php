@@ -587,9 +587,9 @@ final class ITSEC_Lib {
 	 */
 	public static function get_trace_ip_link( $ip = false ) {
 		if ( empty( $ip ) ) {
-			return 'https://www.iptrackeronline.com/ithemes.php';
+			return 'http://www.traceip.net/';
 		} else {
-			return 'http://www.iptrackeronline.com/ithemes.php?ip_address=' . urlencode( $ip );
+			return 'http://www.traceip.net/?query=' . urlencode( $ip );
 		}
 	}
 
@@ -1065,26 +1065,8 @@ final class ITSEC_Lib {
 		ITSEC_Modules::set_setting( 'global', 'cron_test_time', $time );
 	}
 
-	/**
-	 * Remove the forward slash.
-	 *
-	 * @param string $string
-	 *
-	 * @return string
-	 */
-	public static function unfwdslash( $string ) {
-		return ltrim( $string, '/' );
-	}
-
-	/**
-	 * Add a forward slash.
-	 *
-	 * @param string $string
-	 *
-	 * @return string
-	 */
 	public static function fwdslash( $string ) {
-		return '/' . self::unfwdslash( $string );
+		return '/' . ltrim( $string, '/' );
 	}
 
 	/**
@@ -1175,34 +1157,6 @@ final class ITSEC_Lib {
 		foreach ( $iterator as $key => $value ) {
 			$array[ $key ] = $value;
 		}
-
-		return $array;
-	}
-
-	/**
-	 * Inserts a new key/value before the key in the array.
-	 *
-	 * @param string $key       The key to insert before.
-	 * @param array  $array     An array to insert in to.
-	 * @param string $new_key   The key to insert.
-	 * @param mixed  $new_value The value to insert.
-	 *
-	 * @return array
-	 */
-	public static function array_insert_before( $key, $array, $new_key, $new_value) {
-		if ( array_key_exists( $key, $array ) ) {
-			$new = array();
-			foreach ( $array as $k => $value ) {
-				if ( $k === $key ) {
-					$new[ $new_key ] = $new_value;
-				}
-				$new[ $k ] = $value;
-			}
-
-			return $new;
-		}
-
-		$array[ $new_key ] = $new_value;
 
 		return $array;
 	}
@@ -1746,14 +1700,5 @@ final class ITSEC_Lib {
 
 	public static function str_ends_with( $haystack, $needle ) {
 		return '' === $needle || substr_compare( $haystack, $needle, - strlen( $needle ) ) === 0;
-	}
-
-	/**
-	 * Load a library class definition.
-	 *
-	 * @param string $name
-	 */
-	public static function load( $name ) {
-		require_once( dirname( __FILE__ ) . "/lib/class-itsec-lib-{$name}.php" );
 	}
 }

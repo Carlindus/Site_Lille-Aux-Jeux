@@ -16,22 +16,16 @@ import Smush from '../smush/smush';
 			/**
 			 * Handle the Bulk Smush/Bulk re-Smush button click.
 			 */
-			$( '.wp-smush-all' ).on( 'click', function( e ) {
+			$( 'button.wp-smush-all' ).on( 'click', function( e ) {
 				e.preventDefault();
 
 				$( '.sui-notice-top.sui-notice-success' ).remove();
-
-				const bulkWarning = document.getElementById('bulk_smush_warning');
-				bulkWarning.classList.add('sui-hidden');
 
 				// Remove limit exceeded styles.
 				const progress = $( '.wp-smush-bulk-progress-bar-wrapper' );
 				progress.removeClass( 'wp-smush-exceed-limit' );
 				progress.find( '.sui-progress-block .wp-smush-all' ).addClass('sui-hidden');
 				progress.find( '.sui-progress-block .wp-smush-cancel-bulk' ).removeClass('sui-hidden');
-				if ( bulkWarning ) {
-					document.getElementById( 'bulk-smush-resume-button' ).classList.add( 'sui-hidden' );
-				}
 
 				// Disable re-Smush and scan button.
 				// TODO: refine what is disabled.
@@ -48,9 +42,9 @@ import Smush from '../smush/smush';
 				$( '.wp-smush-remaining' ).hide();
 
 				// Show loader.
-				progress.find('i.sui-icon-info').removeClass('sui-icon-info')
-					.addClass('sui-loading')
-					.addClass('sui-icon-loader');
+				$( '.sui-summary-smush .smush-stats-icon' )
+					.removeClass( 'sui-icon-info sui-warning' )
+					.addClass( 'sui-icon-loader sui-loading' );
 
 				new Smush( $( this ), true );
 			} );

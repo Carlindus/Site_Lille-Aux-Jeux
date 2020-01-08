@@ -8,8 +8,6 @@ if (!defined('ABSPATH')) die('No direct access allowed');
 
 if (!class_exists('WPO_Cache_Config')) require_once('class-wpo-cache-config.php');
 
-require_once dirname(__FILE__) . '/file-based-page-cache-functions.php';
-
 if (!class_exists('WPO_Cache_Rules')) :
 
 class WPO_Cache_Rules {
@@ -28,6 +26,9 @@ class WPO_Cache_Rules {
 	 */
 	public static $instance;
 
+	/**
+	 * Class constructor
+	 */
 	public function __construct() {
 		$this->config = WPO_Cache_Config::instance()->get();
 		$this->setup_hooks();
@@ -37,51 +38,69 @@ class WPO_Cache_Rules {
 	 * Setup hooks/filters
 	 */
 	public function setup_hooks() {
+		add_action('pre_post_update', array($this, 'purge_post_on_update'), 10, 1);
 		add_action('save_post', array($this, 'purge_post_on_update'), 10, 1);
 		add_action('wp_trash_post', array($this, 'purge_post_on_update'), 10, 1);
-		add_action('comment_post', array($this, 'purge_post_on_comment'), 10, 3);
-		add_action('wp_set_comment_status', array($this, 'purge_post_on_comment_status_change'), 10, 1);
-
-		/**
-		 * List of hooks for which when executed, the cache will be purged
-		 *
-		 * @param array $actions The actions
-		 */
-		$purge_on_action = apply_filters('wpo_purge_cache_hooks', array('after_switch_theme', 'wp_update_nav_menu', 'customize_save_after', 'wp_ajax_save-widget'));
-		foreach ($purge_on_action as $action) {
-			add_action($action, array($this, 'purge_cache'));
-		}
+		add_action('wp_set_comment_status', array($this, 'purge_post_on_comment_status_change'), 10);
+		add_action('set_comment_cookies', array($this, 'set_comment_cookie_exceptions'), 10);
 	}
 
 	/**
-	 * Purge post cache when there is a new approved comment
+	 * When user posts a comment, set a cookie so we don't show them page cache
 	 *
-	 * @param  int        $comment_id  Comment ID.
-	 * @param  int|string $approved    Comment approved status. can be 0, 1 or 'spam'.
-	 * @param  array      $commentdata Comment data array. Always sent be WP core, but a plugin was found that does not send it - https://wordpress.org/support/topic/critical-problems-with-version-3-0-10/
+	 * @param WP_Comment $comment Comment to check.
 	 */
-	public function purge_post_on_comment($comment_id, $approved, $commentdata = array()) {
-		if (1 !== $approved) {
-			return;
-		}
+	public function set_comment_cookie_exceptions($comment) {
+	
+		if (empty($this->config['enable_page_caching'])) return;
+		
+		$path = $this->get_post_path($comment->comment_post_ID);
 
-		if (!empty($this->config['enable_page_caching']) && !empty($commentdata['comment_post_ID'])) {
-			$post_id = $commentdata['comment_post_ID'];
+		$this->purge_from_cache($path);
+	}
+		
+	/**
+	 * Purge files for a particular path from the cache
+	 *
+	 * @param String $path - the path
+	 */
+	public function purge_from_cache($path) {
+		WPO_Page_Cache::delete(untrailingslashit($path) . '/index.html');
+		WPO_Page_Cache::delete(untrailingslashit($path) . '/index.gzip.html');
 
-			WPO_Page_Cache::delete_single_post_cache($post_id);
+		if (!empty($this->config['enable_mobile_caching'])) {
+			WPO_Page_Cache::delete(untrailingslashit($path) . '/mobile.index.html');
+			WPO_Page_Cache::delete(untrailingslashit($path) . '/mobile.index.gzip.html');
 		}
 	}
+		
 
+	/**
+	 * Get the cache path for a given post
+	 *
+	 * @param Integer $post_id - WP post ID
+	 *
+	 * @return String
+	 */
+	private function get_post_path($post_id) {
+		return WPO_CACHE_DIR . preg_replace('#^https?://#i', '', get_permalink($post_id));
+	}
+	
 	/**
 	 * Every time a comment's status changes, purge it's parent posts cache
 	 *
-	 * @param int $comment_id Comment ID.
+	 * @param Integer $comment_id Comment ID.
 	 */
 	public function purge_post_on_comment_status_change($comment_id) {
-		if (!empty($this->config['enable_page_caching'])) {
-			$comment = get_comment($comment_id);
-			if (is_object($comment) && !empty($comment->comment_post_ID)) WPO_Page_Cache::delete_single_post_cache($comment->comment_post_ID);
-		}
+
+		if (empty($this->config['enable_page_caching'])) return;
+		
+		$comment = get_comment($comment_id);
+
+		$path = $this->get_post_path($comment->comment_post_ID);
+
+		$this->purge_from_cache($path);
+		
 	}
 
 	/**
@@ -89,33 +108,17 @@ class WPO_Cache_Rules {
 	 * We want the whole cache purged here as different parts
 	 * of the site could potentially change on post updates
 	 *
-	 * @param Integer $post_id - WP post id
+	 * @param Integer $post_id WordPress post id
 	 */
 	public function purge_post_on_update($post_id) {
 		$post_type = get_post_type($post_id);
 
 		if ((defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) || 'revision' === $post_type) {
 			return;
+		} elseif (!current_user_can('edit_post', $post_id) && (!defined('DOING_CRON') || !DOING_CRON)) {
+			return;
 		}
 
-		/**
-		 * Purge the whole cache if set to true, only the edited post otherwise. Default is false.
-		 *
-		 * @param boolean $purge_all_cache The default filter value
-		 * @param integer $post_id         The saved post ID
-		 */
-		if (apply_filters('wpo_purge_all_cache_on_update', false, $post_id)) {
-			$this->purge_cache();
-		} else {
-			if (apply_filters('wpo_delete_cached_homepage_on_post_update', true, $post_id)) WPO_Page_Cache::delete_homepage_cache();
-			WPO_Page_Cache::delete_single_post_cache($post_id);
-		}
-	}
-
-	/**
-	 * Clears the cache.
-	 */
-	public function purge_cache() {
 		if (!empty($this->config['enable_page_caching'])) {
 			wpo_cache_flush();
 		}
@@ -124,7 +127,7 @@ class WPO_Cache_Rules {
 	/**
 	 * Returns an instance of the current class, creates one if it doesn't exist
 	 *
-	 * @return object
+	 * @return WPO_Cache_Rules
 	 */
 	public static function instance() {
 		if (empty(self::$instance)) {

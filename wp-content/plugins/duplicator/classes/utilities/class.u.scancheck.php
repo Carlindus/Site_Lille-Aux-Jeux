@@ -1,5 +1,4 @@
 <?php
-defined('ABSPATH') || defined('DUPXABSPATH') || exit;
 /**
  * Recursivly scans a directory and finds all sym-links and unreadable files
  *
@@ -7,13 +6,16 @@ defined('ABSPATH') || defined('DUPXABSPATH') || exit;
  * @link http://www.php-fig.org/psr/psr-2
  *
  * @package Duplicator
- * @subpackage classes/utilities
+ * @subpackage classes/utilites
  * @copyright (c) 2017, Snapcreek LLC
+ * @since 1.1.26
  *
  */
 
 // Exit if accessed directly
-if (! defined('DUPLICATOR_VERSION')) exit;
+if (!defined('DUPLICATOR_VERSION')) {
+    exit;
+}
 
 class DUP_ScanCheck
 {
@@ -152,7 +154,7 @@ class DUP_ScanCheck
 								}
 							}
 						}
-
+						
                         $this->dirCount++;
                     }
                 }
@@ -162,9 +164,9 @@ class DUP_ScanCheck
     }
 
     /**
-     * Separation logic for supporting how different operating systems work
+     * Seperation logic for supporting how different operating systems work
      *
-     * @param string $target A valid file path
+     * @param string $target A valid file path 
      *
      * @return bool  Is the target a sym link
      */

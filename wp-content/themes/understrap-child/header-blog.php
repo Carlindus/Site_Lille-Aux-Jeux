@@ -32,9 +32,7 @@ $container = get_theme_mod( 'understrap_container_type' );
 <body <?php body_class(); ?>>
 	<div class="headerblog headerContainer container-fluid position-relative d-flex justify-content-center align-tems-center" style="background-image:url('<?php echo the_field('header_article_img', get_option('page_for_posts')); ?>')">
 
-		<p class="d-flex align-items-center">
-			<strong><?php echo the_field('header_article_text', get_option('page_for_posts')); ?></strong>
-		</p>
+		<p class="d-flex align-items-center"><?php echo the_field('header_article_text', get_option('page_for_posts')); ?></p>
 
 	</div>
 

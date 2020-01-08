@@ -22,8 +22,8 @@ $container = get_theme_mod( 'understrap_container_type' );
 	<link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>">
 	<?php wp_head(); ?>
 
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
-  <link href="<?php echo get_stylesheet_directory_uri() ?>/css/owl.carousel.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+  <link href="<?php echo get_stylesheet_directory_uri() ?>/css/owl.carousel.min.css" rel="stylesheet">
   <link href="<?php echo get_stylesheet_directory_uri() ?>/css/owl.theme.default.min.css" rel="stylesheet">
 	<Link href="<?php echo get_stylesheet_directory_uri() ?>/css/custom.css" rel="stylesheet" type="text/css">
 	<Link href="<?php echo get_stylesheet_directory_uri() ?>/css/custom-responsive.css" rel="stylesheet" type="text/css">

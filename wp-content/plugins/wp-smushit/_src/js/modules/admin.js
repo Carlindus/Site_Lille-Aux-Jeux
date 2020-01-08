@@ -218,7 +218,7 @@ jQuery( function ( $ ) {
 		scan_type = 'undefined' == typeof scan_type ? 'media' : scan_type;
 
 		// Remove the Skip resmush attribute from button.
-		$( '.wp-smush-all' ).removeAttr( 'data-smush' );
+		$( 'button.wp-smush-all' ).removeAttr( 'data-smush' );
 
 		// Remove notices.
 		const notices = $( '.sui-notice-top.sui-notice-success' );
@@ -265,6 +265,12 @@ jQuery( function ( $ ) {
 						wp_smushit_data.bytes = parseInt( wp_smushit_data.size_before ) - parseInt( wp_smushit_data.size_after )
 					}
 
+					let smush_percent = ( wp_smushit_data.count_smushed / wp_smushit_data.count_total ) * 100;
+					smush_percent = WP_Smush.helpers.precise_round( smush_percent, 1 );
+
+					// Update it in stats bar.
+					$( '.wp-smush-images-percent' ).html( smush_percent );
+
 					// Hide the Existing wrapper.
 					const notices = $( '.bulk-smush-wrapper .sui-notice' );
 					if ( notices.length > 0 ) {
@@ -276,10 +282,14 @@ jQuery( function ( $ ) {
 
 					// Show Bulk wrapper.
 					$( '.wp-smush-bulk-wrapper' ).show();
+
+					if ( 'undefined' !== typeof r.data.count ) {
+						update_progress_bar_resmush( r.data.count );
+					}
 				}
 				// If content is received, Prepend it.
 				if ( 'undefined' !== typeof r.data.content ) {
-					$( '.bulk-smush-wrapper .sui-box-body > p:first-of-type' ).after( r.data.content );
+					$( '.bulk-smush-wrapper .sui-box-body' ).prepend( r.data.content );
 				}
 				// If we have any notice to show.
 				if ( 'undefined' !== typeof r.data.notice ) {
@@ -399,31 +409,6 @@ jQuery( function ( $ ) {
 			return urlparam.replace( /<(?:.|\n)*?>/gm, '' );
 		}
 	}
-
-	/**
-	 * When 'All' is selected for the Image Sizes setting, select all available sizes.
-	 *
-	 * @since 3.2.1
-	 */
-	$('#all-image-sizes').on('change', function() {
-		$('input[name^="wp-smush-image_sizes"]').prop('checked', true);
-	});
-
-	/**
-	 * Handle re-check api status button click (Settings)
-	 *
-	 * @since 3.2.0.2
-	 */
-	$('#wp-smush-update-api-status').on('click', function (e) {
-		e.preventDefault();
-
-		//$(this).prop('disabled', true);
-		$(this).addClass('sui-button-onload');
-
-		$.post(ajaxurl, {action: 'recheck_api_status'}, function () {
-			location.reload();
-		});
-	});
 
 	/**
 	 * Handle the Smush Stats link click
@@ -767,7 +752,7 @@ jQuery( function ( $ ) {
 	$( 'body' ).on( 'click', '.wp-smush-trigger-bulk', function ( e ) {
 		e.preventDefault();
 		//Induce Setting button save click
-		$( '.wp-smush-all' ).click();
+		$( 'button.wp-smush-all' ).click();
 		$( 'span.sui-notice-dismiss' ).click();
 	} );
 
@@ -812,10 +797,11 @@ jQuery( function ( $ ) {
 	} );
 
 	// Handle Automatic Smush Checkbox toggle, to show/hide image size settings.
-	$( '#column-wp-smush-auto' ).on( 'click', '#wp-smush-auto', function () {
-		const settings_wrap = $( '#column-wp-smush-auto .auto-smush-notice' );
+	$( 'body' ).on( 'click', '#wp-smush-auto', function () {
+		var self = $( this );
+		var settings_wrap = $( '.wp-smush-image-size-list' );
 
-		if ( $( this ).is( ':checked' ) ) {
+		if ( self.is( ':checked' ) ) {
 			settings_wrap.show();
 		} else {
 			settings_wrap.hide();
@@ -851,6 +837,15 @@ jQuery( function ( $ ) {
 			settings_wrap.show();
 		} else {
 			settings_wrap.hide();
+		}
+	} );
+
+	//Handle, Change event in Enable Networkwide settings
+	$( '#wp-smush-networkwide' ).on( 'click', function ( e ) {
+		if ( $( this ).is( ':checked' ) ) {
+			$( '.network-settings-wrapper' ).show();
+		} else {
+			$( '.network-settings-wrapper' ).hide();
 		}
 	} );
 

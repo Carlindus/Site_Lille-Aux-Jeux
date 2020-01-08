@@ -5,35 +5,42 @@
 
 if (!defined('ABSPATH')) die('Access denied.');
 
-if (!class_exists('Updraft_Task_Manager_1_2')) :
+if (!class_exists('Updraft_Task_Manager_1_0')) :
 
-abstract class Updraft_Task_Manager_1_2 {
+class Updraft_Task_Manager_1_0 {
 
 	protected $loggers;
 
 	public $commands;
 
-	private $queue_semaphore;
-	
-	/**
-	 * Set this to the number of seconds for the lock timeout, or 0 to not use a lock
-	 */
-	protected $use_per_task_lock = 0;
+	private $semaphore;
+
+	protected static $_instance = null;
 
 	/**
 	 * The Task Manager constructor
 	 */
 	public function __construct() {
 
-		if (!class_exists('Updraft_Task_1_1')) require_once('class-updraft-task.php');
+		add_action('plugins_loaded', array($this, 'plugins_loaded'));
+
+		if (!class_exists('Updraft_Task_1_0')) require_once('class-updraft-task.php');
 		if (!class_exists('Updraft_Task_Manager_Commands_1_0')) require_once('class-updraft-task-manager-commands.php');
-		if (!class_exists('Updraft_Semaphore_2_1')) require_once(dirname(__FILE__).'/../updraft-semaphore/class-updraft-semaphore.php');
+		if (!class_exists('Updraft_Semaphore_2_0')) require_once(dirname(__FILE__).'/../updraft-semaphore/class-updraft-semaphore.php');
 
 		$this->commands = new Updraft_Task_Manager_Commands_1_0($this);
 
 		add_action('wp_ajax_updraft_taskmanager_ajax', array($this, 'updraft_taskmanager_ajax'));
 
 		do_action('updraft_task_manager_loaded', $this);
+	}
+
+	/**
+	 * Loads needed dependencies and sets everything up.
+	 */
+	public function plugins_loaded() {
+		
+		add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
 	}
 
 	/**
@@ -81,15 +88,14 @@ abstract class Updraft_Task_Manager_1_2 {
 	 */
 	public function process_task($task) {
 
-		if (!is_a($task, 'Updraft_Task_1_1')) {
+		if (!is_a($task, 'Updraft_Task_1_0')) {
 			$task_id = (int) $task;
 			$task = $this->get_task_instance($task_id);
 		}
 		
 		if (!$task) return new WP_Error('id_invalid', 'Task not found or ID is invalid');
 
-		return $task->attempt(apply_filters('updraft_task_lock_for', $this->use_per_task_lock, $this));
-		
+		return $task->attempt();
 	}
 
 	/**
@@ -100,7 +106,7 @@ abstract class Updraft_Task_Manager_1_2 {
 	 */
 	public function get_task_status($task) {
 
-		if (!($task instanceof Updraft_Task_1_1)) {
+		if (!($task instanceof Updraft_Task_1_0)) {
 			$task_id = (int) $task;
 			$task = $this->get_task_instance($task_id);
 		}
@@ -118,7 +124,7 @@ abstract class Updraft_Task_Manager_1_2 {
 	 */
 	public function end_task($task) {
 		
-		if (!($task instanceof Updraft_Task_1_1)) {
+		if (!($task instanceof Updraft_Task_1_0)) {
 			$task_id = (int) $task;
 			$task = $this->get_task_instance($task_id);
 		}
@@ -128,16 +134,15 @@ abstract class Updraft_Task_Manager_1_2 {
 		return $task->complete();
 	}
 
-    /**
-     * Process a the queue of a specifed task type
-     *
-     * @param string $type queue type to process
-     * @return bool true on success, false otherwise
-     */
+	/**
+	 * Process a the queue of a specifed task type
+	 *
+	 * @param string $type queue type to process
+	 */
 	public function process_queue($type) {
 
 		$task_list = $this->get_active_tasks($type);
-		$total = is_array($task_list) ? count($task_list) : 0;
+		$total = count($task_list);
 
 		if (1 > $total) {
 			$this->log(sprintf('The queue for tasks of type "%s" is empty. Aborting!', $type));
@@ -146,40 +151,41 @@ abstract class Updraft_Task_Manager_1_2 {
 			$this->log(sprintf('A total of %d tasks of type %s found and will be processed in this iteration', $total, $type));
 		}
 
-		$this->queue_semaphore = new Updraft_Semaphore_2_1($type);
-		
-		$this->queue_semaphore->set_loggers($this->loggers);
+		$this->semaphore = new Updraft_Semaphore_2_0($type);
 
-		if (!$this->queue_semaphore->lock()) {
+		$last_scheduled_action_called_at = get_option("updraft_last_scheduled_$type");
+		$seconds_ago = time() - $last_scheduled_action_called_at;
+
+		$time_out = defined('UPDRAFT_TASK_MANAGER_LOCK_TIMEOUT') ? UPDRAFT_TASK_MANAGER_LOCK_TIMEOUT : 60;
+
+		if ($last_scheduled_action_called_at && $seconds_ago < $time_out) {
+
+			$this->log(sprintf('Failed to gain semaphore lock (%s) - another process which was started only %s seconds_ago is already processing the queue - aborting (if this is wrong - i.e. if the other backup crashed without removing the lock, then another can be started after 1 minute)', $type, $seconds_ago));
+
+			return false;
+		}
+
+		update_option("updraft_last_scheduled_$type", time());
+		
+		if (!$this->semaphore->lock()) {
 
 			$this->log(sprintf('Failed to gain semaphore lock (%s) - another process is already processing the queue - aborting (if this is wrong - i.e. if the other process crashed without removing the lock, then another can be started after 1 minute', $type));
 
 			return false;
 		}
 
-		$done = 0;
 		foreach ($task_list as $task) {
-			$this->process_task($task);
-			$this->queue_semaphore->update_lock(20);
-			$done++;
-			/**
-			 * Filters if the queue should be interrupted. Used after processing each task.
-			 *
-			 * @param boolean $interrupt_queue - If the queue should be interrupted. Default to FALSE
-			 * @param object  $task            - The current task object
-			 * @param object  $task_manager    - The task manager instance
-			 */
-			if (apply_filters('updraft_interrupt_tasks_queue_'.$type, false, $task, $this)) {
-				break;
-			}
+			$complete = $this->process_task($task);
 		}
 
-		$this->queue_semaphore->unlock();
-		$this->log(sprintf('Successfully processed the queue (%s). %d tasks were processed out of %d.', $type, $done, $total));
-		$this->queue_semaphore->delete();
+		$this->semaphore->unlock();
+		$this->log(sprintf('Successfully processed the queue (%s). A total of %d tasks were processed.', $type, $total));
+		$this->semaphore->clean_up();
 
-		return $done == $total;
+		return true;
 	}
+
+	
 
 	/**
 	 * Cleans out all complete tasks from the DB.
@@ -199,50 +205,6 @@ abstract class Updraft_Task_Manager_1_2 {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Delete all tasks from queue.
-	 *
-	 * @param string $type
-	 *
-	 * @return boolean|integer Number of rows deleted, or (boolean)false upon error
-	 */
-	public function delete_tasks($task_type) {
-		global $wpdb;
-
-		$sql = "DELETE t, tm FROM `{$wpdb->base_prefix}tm_tasks` t LEFT JOIN `{$wpdb->base_prefix}tm_taskmeta` tm ON t.id = tm.task_id WHERE t.type = '{$task_type}'";
-
-		return $wpdb->query($sql);
-	}
-
-	/**
-	 * Get count of completed and all tasks.
-	 *
-	 * @return array - [ ['complete_tasks' => , 'all_tasks' => ] ]
-	 */
-	public function get_status($task_type) {
-		global $wpdb;
-
-		$query = $wpdb->prepare(
-			"SELECT complete_tasks, all_tasks FROM (SELECT COUNT(*) AS complete_tasks FROM {$wpdb->base_prefix}tm_tasks WHERE `type` = %s AND `status` = %s) a, (SELECT COUNT(*) AS all_tasks FROM {$wpdb->base_prefix}tm_tasks WHERE `type` = %s) b",
-			array(
-				$task_type,
-				'complete',
-				$task_type,
-			)
-		);
-
-		$status = $wpdb->get_row($query, ARRAY_A);
-
-		if (empty($status)) {
-			$status = array(
-				'complete_tasks' => 0,
-				'all_tasks' => 0,
-			);
-		}
-
-		return $status;
 	}
 
 	/**
@@ -278,10 +240,10 @@ abstract class Updraft_Task_Manager_1_2 {
 
 		$tasks = array();
 		
-		if (array_key_exists($status, Updraft_Task_1_1::get_allowed_statuses())) {
-			$sql = $wpdb->prepare("SELECT * FROM {$wpdb->base_prefix}tm_tasks WHERE status = %s AND type = %s", $status, $type);
+		if (array_key_exists($status, Updraft_Task_1_0::get_allowed_statuses())) {
+			$sql = $wpdb->prepare("SELECT * FROM {$wpdb->prefix}tm_tasks WHERE status = %s AND type = %s", $status, $type);
 		} else {
-			$sql = $wpdb->prepare("SELECT * FROM {$wpdb->base_prefix}tm_tasks WHERE type = %s", $type);
+			$sql = $wpdb->prepare("SELECT * FROM {$wpdb->prefix}tm_tasks WHERE type = %s", $type);
 		}
 
 		$_tasks = $wpdb->get_results($sql);
@@ -294,6 +256,11 @@ abstract class Updraft_Task_Manager_1_2 {
 		}
 
 		return $tasks;
+	}
+
+	public function enqueue_scripts() {
+
+		// Stub to allow for any JS to be added in at a later version
 	}
 
 	/**
@@ -312,7 +279,8 @@ abstract class Updraft_Task_Manager_1_2 {
 		$task_id = (int) $task_id;
 		if (!$task_id) return false;
 
-		$sql = $wpdb->prepare("SELECT * FROM {$wpdb->base_prefix}tm_tasks WHERE id = %d LIMIT 1", $task_id);
+
+		$sql = $wpdb->prepare("SELECT * FROM {$wpdb->prefix}tm_tasks WHERE id = %d LIMIT 1", $task_id);
 		$_task = $wpdb->get_row($sql);
 
 		if (!$_task)
@@ -321,9 +289,7 @@ abstract class Updraft_Task_Manager_1_2 {
 		$class_identifier = $_task->class_identifier;
 
 		if (class_exists($class_identifier))
-			$task_instance = new $class_identifier($_task);
-			$task_instance->set_loggers($this->loggers);
-			return $task_instance;
+			return new $class_identifier($_task);
 
 		return false;
 	}
@@ -364,13 +330,37 @@ abstract class Updraft_Task_Manager_1_2 {
 	 * @param String $error_type - the error type
 	 */
 	public function log($message, $error_type = 'info') {
+
 		if (isset($this->loggers)) {
 			foreach ($this->loggers as $logger) {
-				$logger->log($error_type, $message);
+				$logger->log($message, $error_type);
 			}
+		} else {
+			error_log($message);
 		}
 	}
 
+	/**
+	 * Returns the only instance of this class
+	 *
+	 * @return Updraft_Task_Manager_1_0
+	 */
+	public static function instance() {
+		if (empty(self::$_instance)) {
+			self::$_instance = new self();
+		}
+
+		return self::$_instance;
+	}
 }
+
+/**
+ * Returns the singleton Updraft_Task_Manager_1_0 class
+ */
+function Updraft_Task_Manager_1_0() {
+	return Updraft_Task_Manager_1_0::instance();
+}
+
+$GLOBALS['updraft_task_manager'] = Updraft_Task_Manager_1_0();
 
 endif;

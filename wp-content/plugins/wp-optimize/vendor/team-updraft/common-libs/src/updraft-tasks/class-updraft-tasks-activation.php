@@ -24,12 +24,11 @@ class Updraft_Tasks_Activation {
 	 */
 	private static $db_updates = array(
 		'0.0.1' => array('create_tables'),
-		'1.0.1' => array('add_attempts_and_class_identifier'),
-		'1.1' => array('add_lock_column'),
+		'1.0.1' => array('updates_for_smush')
 	);
 
 
-	const UPDRAFT_TASKS_DB_VERSION = '1.1';
+	const UPDRAFT_TASKS_VERSION = '1.0.1';
 
 	/**
 	 * Initialise this class
@@ -75,7 +74,7 @@ class Updraft_Tasks_Activation {
 	 * Returns the current version of the plugin
 	 */
 	public static function get_version() {
-		return self::UPDRAFT_TASKS_DB_VERSION;
+		return self::UPDRAFT_TASKS_VERSION;
 	}
 
 	/**
@@ -132,7 +131,7 @@ class Updraft_Tasks_Activation {
 		dbDelta($create_tables);
 	}
 
-	public static function add_attempts_and_class_identifier() {
+	public static function updates_for_smush() {
 		$wpdb = $GLOBALS['wpdb'];
 		$our_prefix = $wpdb->base_prefix.self::$table_prefix;
 
@@ -141,13 +140,6 @@ class Updraft_Tasks_Activation {
 		$wpdb->query("ALTER TABLE ".$our_prefix."tasks ADD attempts INT DEFAULT 0 AFTER type");
 		$wpdb->query("ALTER TABLE ".$our_prefix."tasks ADD class_identifier varchar(300) DEFAULT 0 AFTER type");
 	}
-	
-	public static function add_lock_column() {
-		$wpdb = $GLOBALS['wpdb'];
-		$our_prefix = $wpdb->base_prefix.self::$table_prefix;
-		$wpdb->query('ALTER TABLE '.$our_prefix.'tasks ADD last_locked_at BIGINT DEFAULT 0 AFTER time_created');
-	}
-
 }
 
 endif;
